@@ -1,49 +1,144 @@
 # frozen_string_literal: true
 
-dictionary = File.read('../dictionary.txt').split(' ')
-mistery_word = dictionary.sample
+require "yaml"
 
-# class to create a new game
-class Game
-  attr_accessor :word
-
-  def initialize(string)
-    self.word = string
+# Module containing all functions to run the game
+module AllFunctions
+  def gettable_word
+    dictionary = File.read('../dictionary.txt').split(' ')
+    mistery_word = dictionary.sample
+    mistery_word
   end
 
-  def play_game
-    word_to_guess = word
-    word_len = word_to_guess.length
-    word_holder = []
+  def word_holder(word)
+    word_len = word.length
     num = 0
     while num < word_len
-      if word_to_guess[num] == '-'
-        word_holder.push('-')
+      if word[num] == '-'
+        self.word_array.push('-')
       else
-        word_holder.push('_')
+        self.word_array.push('_')
       end
       num += 1
     end
-    hanged = 0
-    p word_holder
-    while hanged != 6
-      print 'Type a letter: '
-      user_letter = gets.chomp!.downcase
-      if word_to_guess.downcase.include?(user_letter)
-        word_holder.each_with_index do |_element, index|
-          word_holder[index] = user_letter if word_to_guess[index] == user_letter
-        end
-        if word_holder.join('').== word_to_guess.downcase
-          puts "You go it! The word was, indeed, \"#{word_to_guess}\"."
+  end
+
+  def round
+    letter = user_letter()
+    if self.original_word.include?(letter)
+      self.right_letters.push(letter)
+      self.word_array.each_with_index do |_element, index|
+        self.word_array[index] = letter if self.original_word[index] == letter
+      end
+    else
+      self.wrong_letters.push(letter)
+      self.num_rounds += 1
+    end
+  end
+
+  def user_letter
+    print "Type a letter: "
+    letter = gets.chomp!.downcase
+    letter
+  end
+
+  def save_or_continue
+    print "Do you want to save (s) the current game or continue (c)?: "
+    reply = gets.chomp!
+    reply
+  end
+
+  def save_game
+    Dir.mkdir 'output' unless Dir.exist? 'output'
+    @filename = "1_game.yaml"
+    File.open("output/#{@filename}", 'w') { |file| file.write save_to_yaml }
+  end
+
+  def save_to_yaml
+    YAML.dump(
+      'original_word' => self.original_word,
+      'available_letters' => self.available_letters, #Maybe delete this
+      'right_letters' => self.right_letters,
+      'wrong_letters' => self.wrong_letters,
+      'word_array' => self.word_array,
+      'num_rounds' => self.num_rounds
+    )
+  end
+
+  def load_game
+    file = YAML.safe_load(File.read("output/1_game.yaml"))
+    self.original_word = file['original_word']
+    self.right_letters = file["right_letters"]
+    self.wrong_letters = file["wrong_letters"]
+    self.word_array = file['word_array']
+    self.num_rounds = file['num_rounds']
+    puts self.original_word
+    p self.word_array
+    while self.num_rounds < 6
+      if save_or_continue() == "c"
+        round()
+        p self.word_array 
+        if self.original_word == self.word_array.join("")
+          puts "You win!"
           break
         end
       else
-        hanged += 1
+        save_game()
+        break
       end
-      p word_holder
-      puts "You've lost, the correct word was \"#{word_to_guess}\"." if hanged == 6
+      if self.num_rounds == 6
+        puts "You have lost. The right word was #{self.original_word}."
+        break
+      end
     end
   end
 end
 
-Game.new(mistery_word).play_game
+# class that contains the logic of the game
+class Game
+  include AllFunctions
+
+  attr_accessor :original_word, :wrong_letters, :right_letters, :available_letters, :num_rounds, :word_array
+
+  def initialize
+    self.available_letters = ("a".."z").to_a
+    self.right_letters = []
+    self.wrong_letters = []
+    self.word_array = []
+    self.num_rounds = 0
+    play_game()
+  end
+
+  def play_game
+    print "Play a new game (n) or load an existing game file (l)."
+    user_says = gets.chomp!
+    new_game() if user_says == "n"
+    load_game() if user_says == "l"
+  end
+
+  def new_game
+    self.original_word = gettable_word()
+    word_holder(self.original_word)
+    puts self.original_word
+    p self.word_array
+    while self.num_rounds < 6
+      if save_or_continue() == "c"
+        round()
+        p self.word_array 
+        if self.original_word == self.word_array.join("")
+          puts "You win!"
+          break
+        end
+      else
+        save_game()
+        break
+      end
+      if self.num_rounds == 6
+        puts "You have lost. The right word was #{self.original_word}."
+        break
+      end
+    end
+  end
+end
+
+Game.new
