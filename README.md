@@ -6,10 +6,8 @@ Things left to be done in this project:
 
 2. Add a function that deletes the file of the current game when the game ends (victory or defeat) if the current game was loaded (not new game).
 
-3. Refactoring the code. Logic of the game > new_game & load_game
+3. Add a function to check the user inputs when selecting a letter.
 
-4. Add a function to check the user inputs when selecting a letter.
+4. Add a function to check that the user selects either "l" (load) or "n" (new) when starting the game.
 
-5. Add a function to check that the user selects either "l" (load) or "n" (new) when starting the game.
-
-6. Add a function to check that the user selects either "s" (save) or "c" (continue) when asked to save or continue the game.
+5. Add a function to check that the user selects either "s" (save) or "c" (continue) when asked to save or continue the game.
