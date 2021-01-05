@@ -69,7 +69,16 @@ module AllFunctions
     self.wrong_letters = file['wrong_letters']
     self.word_array = file['word_array']
     self.num_rounds = file['num_rounds']
-    puts original_word
+    game_logic
+  end
+
+  def new_game
+    self.original_word = gettable_word
+    word_holder(original_word)
+    game_logic
+  end
+
+  def game_logic
     p word_array
     while self.num_rounds < 6
       if save_or_continue == 'c'
@@ -111,30 +120,6 @@ class Game
     user_says = gets.chomp!
     new_game if user_says == 'n'
     load_game if user_says == 'l'
-  end
-
-  def new_game
-    self.original_word = gettable_word
-    word_holder(original_word)
-    puts original_word
-    p word_array
-    while self.num_rounds < 6
-      if save_or_continue == 'c'
-        round
-        p word_array
-        if original_word == word_array.join('')
-          puts 'You win!'
-          break
-        end
-      else
-        save_game
-        break
-      end
-      if self.num_rounds == 6
-        puts "You have lost. The right word was #{original_word}."
-        break
-      end
-    end
   end
 end
 
